@@ -11,22 +11,8 @@ Expected impact:
 - Lower inference latency
 - No correctness regressions
 
-## 2) What You Must Investigate Before Submitting a Proposal
-You are **not expected to fully solve the problem before applying**.  
-You are expected to show technical initiative, good investigation, and a realistic implementation plan.
-
-Before writing your proposal, do this investigation:
-
-- Run quantized YOLO26 inference with OpenVINO `benchmark_app` tool  
-  `benchmark_app` tool: https://github.com/openvinotoolkit/openvino/tree/master/samples/cpp/benchmark_app  
-  YOLO26 model OpenVINO IR: https://github.com/alvoron/gsoc-2026-openvino/tree/main/yolo26
-- Collect debug artifacts: execution model graph and graphs after each transformation phase.  
-  Graph serialization docs: 
-  https://github.com/openvinotoolkit/openvino/blob/master/src/plugins/intel_cpu/docs/debug_capabilities/graph_serialization.md
-- Review graphs and find FP16 convolutino nodes there.
-
-## 3) Required Reading / Code Familiarization
-You should review these PRs to get a picture of int8 Convolution support:
+## 2) Required Reading / Code Familiarization
+Review these PRs to understand the current state of int8 convolution support:
 - Initial int8 convolution support: 
   https://github.com/openvinotoolkit/openvino/pull/30457
 - Per-channel support: 
@@ -34,7 +20,40 @@ You should review these PRs to get a picture of int8 Convolution support:
 - Non-i32 convolution bias support: 
   https://github.com/openvinotoolkit/openvino/pull/33072
 
-Also inspect relevant CPU plugin areas handling convolution, quantization patterns, and graph transformations.
+Also review the following OpenVINO documentation:
+- How to build OpenVINO on macOS: https://github.com/openvinotoolkit/openvino/blob/master/docs/dev/build_mac_arm.md
+- Low Precision Transformations (LPT): https://docs.openvino.ai/2026/documentation/openvino-extensibility/openvino-plugin-library/advanced-guides/low-precision-transformations.html
+- OpenVINO CPU plugin debug capabilities, including graph serialization, average counters, and blob dumping: https://github.com/openvinotoolkit/openvino/blob/master/src/plugins/intel_cpu/docs/debug_capabilities/README.md
+
+## 3) What You Must Investigate Before Submitting a Proposal
+You are **not expected to fully solve the problem before applying**.  
+You are expected to demonstrate technical initiative, thorough investigation, and a realistic implementation plan.
+
+Before writing your proposal, do this:
+
+- Build OpenVINO CPU plugin with `ENABLE_DEBUG_CAPS` and Python bindings: `openvino_intel_cpu_plugin`, `openvino_ir_frontend`, `py_ov_frontends`, `pyopenvino`
+- Run both floating-point and quantized YOLO26 inference using the Python script [infer.py](https://github.com/alvoron/gsoc-2026-openvino/blob/main/scripts/infer.py).  
+To run the script, create a dedicated Python virtual environment and install the following packages:
+  ```
+  pip install torch torchvision openvino ultralytics opencv-python
+  ```
+  How to run the script:
+  ```
+  python infer.py \
+    --model models/yolo26n_quantized_openvino_model/yolo26n_quantized.xml \
+    --image images/coco_bike.jpg \
+    --output images/coco_bike_ov_int_result.jpg
+  ```
+  - YOLO26 floating-point model OpenVINO IR: https://github.com/alvoron/gsoc-2026-openvino/tree/main/models/yolo26n_openvino_model  
+  - YOLO26 quantized model OpenVINO IR: https://github.com/alvoron/gsoc-2026-openvino/tree/main/models/yolo26n_quantized_openvino_model  
+- Collect debug artifacts: execution model graph and graphs after each transformation phase.  
+  Graph serialization docs: 
+https://github.com/openvinotoolkit/openvino/blob/master/src/plugins/intel_cpu/docs/debug_capabilities/graph_serialization.md  
+  **Note:** The Python package `ultralytics` checks whether the `openvino` package is installed before running inference. To force `ultralytics` to use a custom OpenVINO build, override the `PYTHONPATH` environment variable:
+  ```
+  export PYTHONPATH=<OPENVINO_REPO_ROOT>/bin/arm64/Release/python:<OPENVINO_REPO_ROOT>/tools/ovc
+  ``` 
+- Review the graphs and identify FP16 convolution nodes.
 
 ## 4) Technical Gaps You Should Analyze
 Your analysis should address these blockers:
@@ -48,7 +67,7 @@ Your analysis should address these blockers:
   - A `Subtract` appears on convolution activation path
   - This zero-point should be represented through Convolution activation `QuantizationInfo` instead
 
-Provide an implementation plan for one and both gaps.
+Provide an implementation plan for one or both gaps.
 
 ## 5) Required Structure for Your Proposal
 Please include these sections explicitly:
@@ -58,4 +77,3 @@ Please include these sections explicitly:
 - Proposed implementation approach
 - Validation plan
 - Timeline with milestones
-
