@@ -19,7 +19,7 @@ Before writing your proposal, do this investigation:
 
 - Run quantized YOLO26 inference with OpenVINO `benchmark_app` tool  
   `benchmark_app` tool: https://github.com/openvinotoolkit/openvino/tree/master/samples/cpp/benchmark_app  
-  YOLO26 model OpenVINO IR: https://drive.google.com/drive/folders/1FMcdNuLRPjnmDIMJw-CLtJc1EN3EwPxv?usp=sharing
+  YOLO26 model OpenVINO IR: https://github.com/alvoron/gsoc-2026-openvino/tree/main/yolo26
 - Collect debug artifacts: execution model graph and graphs after each transformation phase.  
   Graph serialization docs: 
   https://github.com/openvinotoolkit/openvino/blob/master/src/plugins/intel_cpu/docs/debug_capabilities/graph_serialization.md
