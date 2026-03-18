@@ -27,7 +27,8 @@ Also review the following OpenVINO documentation:
 
 ## 3) What You Must Investigate Before Submitting a Proposal
 You are **not expected to fully solve the problem before applying**.  
-You are expected to demonstrate technical initiative, thorough investigation, and a realistic implementation plan.
+You are expected to demonstrate technical initiative, thorough investigation, and a realistic implementation plan.  
+If time permits, you may also implement part of one technical gap described below (see Section 6).  
 
 Before writing your proposal, do this:
 
@@ -77,3 +78,15 @@ Please include these sections explicitly:
 - Proposed implementation approach
 - Validation plan
 - Timeline with milestones
+
+## 6) Start Addressing a Technical Gap (Optional)
+You may try to start addressing the Swish pattern gap. To do this:
+
+- Enable int8 convolution transformation by deleting `CPU_DISABLE_PASS_ARM(lptManager, ConvolutionTransformation)` in `src/plugins/intel_cpu/src/transformations/transformation_pipeline.cpp`.
+- After that, you may observe ACL issues described in:
+  - https://github.com/ARM-software/ComputeLibrary/issues/1252
+  - https://github.com/ARM-software/ComputeLibrary/issues/1253
+- If you observe similar issues, update the `ComputeLibrary` submodule in `src/plugins/intel_cpu/thirdparty/ComputeLibrary`. Use the `main` branch instead of `v52.8.0` and apply https://github.com/ARM-software/ComputeLibrary/pull/1270 if it is not merged yet.
+- If you do not observe any ACL error after deleting the line, you may avoid the ACL upgrade.
+- You may need to remove the `ACLConvolutionExecutor` single post-op limitation and accept both `Activation` and `FakeQuantize`.
+- Review how activations are fused into Convolution nodes and plan how to handle both the `Swish` node and `FakeQuantize`, so the execution graph contains one int8 convolution node with fused activation.
